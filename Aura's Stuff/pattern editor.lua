@@ -14,8 +14,18 @@ local function grabItem() --takes first itemstack in ME system and copies it to 
         return false
     else
         me.store(me.getItemsInNetwork()[1],db.address)
-        return true
+        return me.getItemsInNetwork()[1]["label"]
     end
+end
+
+local function processAmount(amount)
+    local numberOfSlots = math.floor(amount / 64)
+    if amount % 64 ~= 0 then
+        local isMod = false
+    else
+        local mod = amount % 64
+    end
+    return numberOfSlots, isMod, mod
 end
 
 --[[
@@ -31,6 +41,17 @@ end
 term.clear()
 term.write("Aura's ME Pattern Output Editor\n\nPlease ensure that the pattern you want to edit is in the interface to the left in the first slot.\nAlso ensure that the only item in the ME system to the left is the template item.\nAnd, of course, you'll need a template item. If you haven't gotten one yet, get one now.\n\n")
 term.write("Please enter the desired amount you would like written to the pattern: ")
-amount = term.read()
+local amount = term.read()
 amount = string.gsub(amount,"\n","")
-print(amount)
+term.write("Writing "..amount.." items of "..grabItem().." to pattern...")
+local numberOfSlots, isMod, mod = processAmount(amount)
+local modSlot = 0
+for i=1, numberOfSlots, 1 do
+    me.setInterfacePatternOutput(1, db.address, 1, 64, i)
+    modSlot += 1
+end
+if isMod then
+    me.setInterfacePatternOutput(1, db.address, 1, mod, modSlot)
+end
+term.write("Write complete! Please remove pattern and template item.")
+db.clear(1)
