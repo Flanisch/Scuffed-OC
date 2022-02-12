@@ -48,7 +48,7 @@ local numberOfSlots, isMod, mod = processAmount(amount)
 local modSlot = 0
 for i=1, numberOfSlots, 1 do
     me.setInterfacePatternOutput(1, db.address, 1, 64, i)
-    modSlot += 1
+    modSlot = modSlot + 1
 end
 if isMod then
     me.setInterfacePatternOutput(1, db.address, 1, mod, modSlot)
