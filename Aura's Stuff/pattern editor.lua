@@ -29,8 +29,8 @@ end
 ]]--
 
 term.clear()
-term.write("Aura's ME Pattern Output Editor/n/nPlease ensure that the pattern you want to edit is in the interface to the left in the first slot./nAlso ensure that the only item in the ME system to the left is the template item./nAnd, of course, you'll need a template item. If you haven't gotten one yet, get one now./n/n")
+term.write("Aura's ME Pattern Output Editor\n\nPlease ensure that the pattern you want to edit is in the interface to the left in the first slot.\nAlso ensure that the only item in the ME system to the left is the template item.\nAnd, of course, you'll need a template item. If you haven't gotten one yet, get one now.\n\n")
 term.write("Please enter the desired amount you would like written to the pattern: ")
 amount = term.read()
-string.gsub(amount,"/n","")
+string.gsub(amount,"\n","")
 print(amount)
