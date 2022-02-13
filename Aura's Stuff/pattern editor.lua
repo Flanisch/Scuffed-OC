@@ -40,7 +40,7 @@ term.write("Please enter the desired amount you would like written to the patter
 local amount = term.read()
 amount = string.gsub(amount,"\n","")
 term.write("Writing "..amount.." items of "..grabItem().." to pattern...\n")
-local numberOfSlots, isMod, mod = processAmount(amount)
+local numberOfSlots, mod = processAmount(amount)
 for i=1, 6, 1 do
     if i <= numberOfSlots then
         me.setInterfacePatternOutput(1, db.address, 1, 64, i)
