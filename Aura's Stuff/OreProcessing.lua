@@ -8,7 +8,9 @@ local gui = require("lib.graphics.gui")
 local graphics = require("lib.graphics.graphics")
 
 --variable initializations
-
+local transposer = {}
+local editorPage
+local 
 
 local function save()
     local file = io.open("/home/NIDAS/settings/oreFilters", "w")
@@ -29,19 +31,27 @@ local function load()
     end
     local file = io.open("/home/NIDAS/settings/oreAddr", "r")
     if file then
-        oreAddr = serialization.unserialize(file:read("*a")) or {} --TODO get this to work
+        oreAddr = serialization.unserialize(file:read("*a")) or {}
         file:close()
     end
 end
+
+local function getName(filter)
+    return string.gmatch(filter, "[^%|]+")()
+end
+
+local function
+
 local refresh = nil
 local currentConfigWindow = {}
 --changes config window values
 local function changeAddr(transposerAddress, indexNumber, data)
     if transposerAddress == "None" then
-        --TODO this
+        oreAddr[indexNumber] = "None"
+        transposer[indexNumber] = nil
     else
-        --TODO this
         oreAddr[indexNumber] = transposerAddress
+        transposer[indexNumber] = component.proxy(component.get(transposerAddress))
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
     renderer.removeObject(currentConfigWindow)
@@ -51,29 +61,26 @@ end
 --provides configuration page from main menu
 function OreProcessing.configure(x, y, gui, graphics, renderer, page)
     local renderingData = {x, y, gui, graphics, renderer, page}
-    local number = 1
     local onActivation = {}
     graphics.context().gpu.setActiveBuffer(page)
-    graphics.text(3, 5, "Transposer 1:")
-    graphics.text(3, 7, "Transposer 2:")
     for address, componentType in component.list() do
         if componentType == "transposer" then
             table.insert(onActivation, {displayName = displayName, value = changeAddr, args = {address, number, renderingData}})
         end
     end
     table.insert(onActivation, {displayName = "None", value = changeAddr, args = {"None", renderingData}})
-    table.insert(currentConfigWindow, gui.smallButton(x+15, y+2, oreAddr[1] or "None", gui.selectionBox, {x+16, y+2, onActivation}))
-    local number = 2
-    table.insert(currentConfigWindow, gui.smallButton(x+15, y+3, oreAddr.[2] or "None", gui.selectionBox, {x+16, y+3, onActivation}))
+    for i=1, 2 do
+        table.insert(currentConfigWindow, graphics.text(3,(i * 2) + 3, "Transposer "..tostring(i)..":"))
+        table.insert(currentConfigWindow, gui.smallButton(x+15, y+2, oreAddr[i] or "None", gui.selectionBox, {x+16, y+i+1, onActivation}))
+    end
     local _, ySize = graphics.context().gpu.getBufferSize(page)
     table.insert(currentConfigWindow, gui.bigButton(x+2, y+tonumber(ySize)-4, "Save Configuration", save))
-    
     renderer.update()
     return currentConfigWindow
 end
 --provides the button to access filter page
-function OreProcessing.windowButton()\
-    return {name = "Ore Filters", func = } --TODO fill in function value
+function OreProcessing.windowButton()
+    return {name = "Ore Filters", func = } --TODO fill in function value, pulls up filter window
 end
 --main loop
 function OreProcessing.update()
