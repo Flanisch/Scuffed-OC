@@ -100,15 +100,18 @@ the filters are:
 --main window draw
 local function displayWindow()
     drawn = true
-    load()
+    --load()
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
     renderer.switchWindow("OreProcessing")
-    gui.smallButton(1, (context.height), "< < < Return", returnToMenu, {}, nil, gui.primaryColor())
-    context.gpu.setActiveBuffer(renderer.createObject(math.floor(context.width / 4) - 3, 2, 7, 1, true))
+    context.gpu.setActiveBuffer(0)
     graphics.text(context.width / 4 - 3, 5, "Filters", colors.white)
+    gui.smallButton(1, (context.height), "< < < Return", returnToMenu, {}, nil, gui.primaryColor())
+    local divider = renderer.createObject(math.floor(context.width / 4) - 3, 2, 7, 1, true)
+    context.gpu.setActiveBuffer(divider)
     --draw lower divider
-    context.gpu.setActiveBuffer(renderer.createObject(1, context.height - 1, context.width, 1))
+    local dividervert = renderer.createObject(1, context.height - 1, context.width, 1)
+    context.gpu.setActiveBuffer(dividervert)
     local bar = "▂▂▂"
     for i = 1, context.width - 6 do bar = bar .. "▄" end
     local bar = bar .. "▂▂▂"
@@ -120,6 +123,7 @@ local function displayWindow()
     end
     graphics.text(middle, context.height - 1, "▟", gui.borderColor())
     context.gpu.setActiveBuffer(0)
+    renderer.update()
     --TODO rest of window draw
 end
 
@@ -142,37 +146,39 @@ local function changeAddr(transposerAddress, indexNumber, data)
         oreAddr[indexNumber] = transposerAddress
         transposer[indexNumber] = component.proxy(component.get(transposerAddress))
     end
-    --local x, y, gui, graphics, renderer, page = table.unpack(data)
-    --renderer.update()
+    local x, y, gui, graphics, renderer, page = table.unpack(data)
+    renderer.removeObject(currentConfigWindow)
+    refresh(x, y, gui, graphics, renderer, page)
 end
 
 --provides configuration page from main menu
 function OreProcessing.configure(x, y, gui, graphics, renderer, page)
     local renderingData = {x, y, gui, graphics, renderer, page}
-    local onActivation = {}
-    local index = 1
     graphics.context().gpu.setActiveBuffer(page)
-    local function findTransposers()
+    local function findTransposers(index)
+        local onActivation = {}
+        table.insert(onActivation, {displayName = "None", value = changeAddr, args = {"None", index, renderingData}})
         for address, componentType in component.list() do
             if componentType == "transposer" then
                 local displayName = address
                 table.insert(onActivation, {displayName = displayName, value = changeAddr, args = {address, index, renderingData}})
             end
         end
+        return onActivation
     end
     for i=1, 2 do
-        index = i
         graphics.text(3, (i * 2) + 3, "Transposer "..tostring(i)..":")
-        table.insert(onActivation, {displayName = "None", value = changeAddr, args = {"None", renderingData}})
-        findTransposers()
-        table.insert(currentConfigWindow, gui.smallButton(x+15, y+1+i, oreAddr[i] or "None", gui.selectionBox, {x+16, y+i+1, onActivation}))
-        onActivation = {}
+    end
+    for i=1, 2 do
+        --graphics.text(x+2, (i * 2) + 3, "Transposer "..tostring(i)..":")
+        table.insert(currentConfigWindow, gui.smallButton(x+15, y+1+i, oreAddr[i] or "None", gui.selectionBox, {x+16, y+i+1, findTransposers(i)}))
     end
     local _, ySize = graphics.context().gpu.getBufferSize(page)
     table.insert(currentConfigWindow, gui.bigButton(x+2, y+tonumber(ySize)-4, "Save Configuration", save))
     renderer.update()
     return currentConfigWindow
 end
+refresh = OreProcessing.configure
 --provides the button to access filter page
 function OreProcessing.windowButton()
     return {name = "Ore Filters", func = displayWindow}
