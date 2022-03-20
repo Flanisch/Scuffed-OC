@@ -25,6 +25,7 @@ local function debugnum()
     require("term").setCursor(1,1)
     debugnumber = debugnumber + 1
 end
+--- saves table of filters and transposer addresses to file
 local function save()
     local file = io.open("/home/NIDAS/settings/oreFilters", "w")
     file:write(serialization.serialize(oreFilters))
@@ -34,7 +35,7 @@ local function save()
     file:close()
     windowRefresh(searchKey.keyword)
 end
-
+--- loads table of filters and transposer addresses to memory
 local function load()
     local file = io.open("/home/NIDAS/settings/oreFilters", "r")
     if file then
@@ -49,20 +50,135 @@ local function load()
     end
 end
 
-
-function filterByLabel(data, keyword)
+--- searches table for matching entries
+---@param data table @ oreFilters
+---@param keyword string @ search keyword
+---@return table
+local function filterByLabel(data, keyword)
     local filtered = {}
     for key, value in pairs(data) do
-        if string.find(string.lower(key.name), string.lower(keyword)) ~= nil then
+        if string.find(string.lower(value.name), string.lower(keyword)) ~= nil then
             filtered[key] = value
         end
     end
     return filtered
 end
 
-local function modifyFilter(filter)
+--- searches oreFilters for a name match and returns its index number
+---@param name string @ filter name
+---@return number, boolean
+local function searchFilter(name)
+    for ID, entry in pairs(oreFilters) do
+        if entry.name == name then
+            return ID
+        end
+    end
+    return false
 end
 
+--- adds a filter to oreFilters
+---@param name string @ desired filter name
+---@param filter number @ desired filter output
+---@return boolean
+local function addFilter(name, filter)
+    if not searchFilter(name) then
+        table.insert(oreFilters, {name = name, filter = filter})
+        table.sort(oreFilters)
+        save()
+        return true
+    else
+        return false, "Error: a filter already exists for that"
+    end
+end
+
+--- modifies a filter to change where that ore goes
+---@param filter string @ filter name
+---@param desired number @ desired filter output
+---@return boolean
+local function modifyFilter(filter, desired)
+    local target = searchFilter(filter)
+    if target then
+        oreFilters.target.filter = desired
+        return true
+    else
+        return false, "Error: no filter found"
+    end
+end
+
+--- removes a filter from oreFilters
+---@param name string @ filter name
+---@return boolean
+local function removeFilter(name)
+    local target = searchFilter(name)
+    if target then
+        table.remove(oreFilters, target)
+        return true
+    else
+        return false, "Error: no filter found"
+    end
+end
+
+--- "Are you sure about that?" Generates a 10x3 button at reference coordinates for confirmation purposes
+---@param x number @ reference coordinate
+---@param y number @ reference coordinate
+---@return boolean
+local function confirm(x, y)
+    local context = graphics.context()
+    local buttonpage
+    local function yes()
+        renderer.removeObject(buttonpage)
+        context.gpu.fill(x, y, 10, 3, " ")
+        return true
+    end
+    buttonpage = gui.bigButton(x, y, "Confirm?", yes)
+end
+
+--- generates a cancel button
+---@param page number @ page number to remove
+local function cancelButton(page)
+    local context = graphics.context()
+    local middle = math.floor(context.width / 2)
+    local function cancel(page)
+        renderer.removeObject(page)
+        context.gpu.fill(middle + 1, 1, context.width - middle, context.height - 2, " ")
+        windowRefresh()
+    end
+    gui.bigButton(context.width - 8, context.height - 5, "Cancel", cancel, page)
+end
+
+--- generates a save button at the top right of the screen
+---@param name string @ name of the filter
+---@param filter number @ output setting of the filter
+---@param mode string @ either "save" or "modify"
+local function saveButton(name, filter, mode)
+    local context = graphics.context()
+    local savemode
+    if mode == "save" then
+        savemode = addFilter
+    elseif mode == "modify" then
+        savemode = modifyFilter
+    end
+    gui.bigButton(context.width - 13, 1, "Save Filter", savemode, {name, filter})
+end
+
+--- draws page to add a filter
+local function addPage()
+    --TODO
+end
+
+--- draws page to modify a filter
+---@param filter string @ name of filter
+local function modifyPage(filter)
+    --TODO
+end
+
+local function aboutPage()
+    local context = graphics.context()
+    gui.bigButton(context.width - 12, 1, "Add Filter", addPage)
+end
+
+--- draws the list of filters, filtered by param filterString
+---@param filterString string @ search keyword
 local function displayFilters(filterString)
     filterString = filterString or ""
     local context = graphics.context()
@@ -93,6 +209,7 @@ local function displayFilters(filterString)
 end
 
 windowRefresh = displayFilters
+--- draws a search box
 local function searchBox()
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
@@ -117,9 +234,6 @@ local function searchBox()
 end
 
 --[[
-
-ok
-so
 oreFilters is a table with the following format:
 oreFilters {
     1   {name = [name of ore], filter = [1-7]}
@@ -133,8 +247,10 @@ the filters are:
 6: sift (sift-output)
 7: special (output)
 
-
+it is technically an array with the value as a table
 --]]
+
+---returns to NIDAS main menu
 local function returnToMenu()
     drawn = false
     renderer.switchWindow("main")
@@ -142,7 +258,7 @@ local function returnToMenu()
     renderer.update()
 end
 
---main window draw
+---main window draw
 local function displayWindow()
     drawn = true
     load()
@@ -151,7 +267,6 @@ local function displayWindow()
     local middle = math.floor(context.width / 2)
     renderer.switchWindow("OreProcessing")
     gui.smallButton(1, context.height, "< < < Return", returnToMenu, {}, nil, gui.primaryColor())
-    --local divider = renderer.createObject(math.floor(context.width / 4) - 3, 2, 7, 1, true)
     --draw lower divider
     local divider = renderer.createObject(1, context.height - 1, context.width, 1)
     context.gpu.setActiveBuffer(divider)
@@ -160,7 +275,7 @@ local function displayWindow()
     local bar = bar .. "▂▂▂"
     graphics.text(1, 1, bar, gui.borderColor())
     graphics.text(middle, 1, "▟", gui.borderColor())
-    context.gpu.setActiveBuffer(0)
+    --context.gpu.setActiveBuffer(0)
     --draw middle divider
     local dividervert = renderer.createObject(middle, 1, 1, height - 2)
     context.gpu.setActiveBuffer(dividervert)
@@ -168,16 +283,22 @@ local function displayWindow()
         graphics.text(1, i * 2 - 1, "▐", gui.borderColor())
     end
     context.gpu.setActiveBuffer(0)
+    --function calls to draw extra stuff
     displayFilters()
     searchBox()
-    graphics.text(context.width / 4 - 3, 3, "Filters", colors.white)
+    aboutPage()
+
     renderer.update()
+    --for k, v in pairs(oreFilters) do for i, j in pairs(v) do print(i, j) end end
 end
 
 
 local refresh
 local currentConfigWindow = {}
---changes config window values
+---changes config window values
+---@param transposerAddress string @ address of transposer
+---@param indexNumber number @ index number in oreAddr
+---@param data table @ rendering data for refreshing config window
 local function changeAddr(transposerAddress, indexNumber, data)
     if transposerAddress == "None" then
         oreAddr[indexNumber] = "None"
@@ -191,12 +312,15 @@ local function changeAddr(transposerAddress, indexNumber, data)
     refresh(x, y, gui, graphics, renderer, page) --alias for OreProcessing.configure()
 end
 
---provides the button to access filter page
+---provides the button to access filter page
+---@return table @ NIDAS data
 function OreProcessing.windowButton()
     return {name = "OreFilters", func = displayWindow}
 end
 
---provides configuration page from main menu
+---provides configuration page from main menu
+---@param all any @ rendering data
+---@return table @ NIDAS config window data
 function OreProcessing.configure(x, y, gui, graphics, renderer, page)
     local renderingData = {x, y, gui, graphics, renderer, page}
     graphics.context().gpu.setActiveBuffer(page)
@@ -226,7 +350,7 @@ end
 refresh = OreProcessing.configure
 
 local lastKeyword = searchKey.keyword
---main loop
+--- main loop
 function OreProcessing.update()
     --TODO this
     if drawn then
