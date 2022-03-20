@@ -6,15 +6,25 @@ local serialization = require("serialization")
 local colors = require("lib.graphics.colors")
 local gui = require("lib.graphics.gui")
 local graphics = require("lib.graphics.graphics")
+local renderer = require("lib.graphics.renderer")
 
 --variable initializations
 local transposer = {}
 local editorPage
-local drawn
+drawn = false
 local idPages
 local oreAddr = {}
 local oreFilters = {}
+local search = {}
+local windowRefresh
+local searchKey = {keyword = ""}
 
+local debugnumber = 0
+local function debugnum()
+    print(debugnumber)
+    require("term").setCursor(1,1)
+    debugnumber = debugnumber + 1
+end
 local function save()
     local file = io.open("/home/NIDAS/settings/oreFilters", "w")
     file:write(serialization.serialize(oreFilters))
@@ -22,7 +32,7 @@ local function save()
     local file = io.open("/home/NIDAS/settings/oreAddr", "w")
     file:write(serialization.serialize(oreAddr))
     file:close()
-    --windowRefresh(searchKey.keyword)          Do I need this? Idk what it does
+    windowRefresh(searchKey.keyword)
 end
 
 local function load()
@@ -43,19 +53,22 @@ end
 function filterByLabel(data, keyword)
     local filtered = {}
     for key, value in pairs(data) do
-        if string.find(string.lower(key), string.lower(keyword)) ~= nil then
+        if string.find(string.lower(key.name), string.lower(keyword)) ~= nil then
             filtered[key] = value
         end
     end
     return filtered
 end
 
+local function modifyFilter(filter)
+end
+
 local function displayFilters(filterString)
     filterString = filterString or ""
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
-    local height = context.height - 2
-    local topHeight = 6
+    local topHeight = 4
+    local height = context.height - topHeight - 1
     local maxEntries = height - topHeight - 3
     context.gpu.fill(1, topHeight, middle - 1, height, " ")
     local function formCurrentView(filters)
@@ -71,13 +84,38 @@ local function displayFilters(filterString)
             )
             if k > maxEntries then break end
         end
-        idPages = gui.multiButtonList(x, y, buttons, width, height, "Filters", colors.white, true)
-        context.gpu.setActiveBuffer(0)                          --displayFilters() up to here is eh??? potentially needs debugging
+        idPages = gui.multiButtonList(1, topHeight, buttons, middle - 1, height, "Filters", colors.white, true)
+        context.gpu.setActiveBuffer(0)
     end
     local filteredFilters = filterByLabel(oreFilters, filterString)
     formCurrentView(filteredFilters)
     renderer.update(idPages)
 end
+
+windowRefresh = displayFilters
+local function searchBox()
+    local context = graphics.context()
+    local middle = math.floor(context.width / 2)
+    local searchFrame = renderer.createObject(1, 1, middle - 2, 3)
+    local top = "╭"
+    local mid = "│"
+    local bottom = "╰"
+    for i = 1, middle - 4 do
+        top = top .. "─"
+        mid = mid .. " "
+        bottom = bottom .. "─"
+    end
+    top = top .. "╮"
+    mid = mid .. "│"
+    bottom = bottom .. "╯"
+    context.gpu.setActiveBuffer(searchFrame)
+    graphics.text(1, 1, top, gui.primaryColor())
+    graphics.text(1, 3, mid, gui.primaryColor())
+    graphics.text(1, 5, bottom, gui.primaryColor())
+    graphics.text(3, 3, "Search:", colors.white)
+    gui.multiAttributeList(2, 1, searchFrame, search, {{name = "Search: ", attribute = "keyword", type = "string", defaultValue = ""}}, searchKey, nil, 35)
+end
+
 --[[
 
 ok
@@ -96,37 +134,7 @@ the filters are:
 7: special (output)
 
 
-]]
---main window draw
-local function displayWindow()
-    drawn = true
-    --load()
-    local context = graphics.context()
-    local middle = math.floor(context.width / 2)
-    renderer.switchWindow("OreProcessing")
-    context.gpu.setActiveBuffer(0)
-    graphics.text(context.width / 4 - 3, 5, "Filters", colors.white)
-    gui.smallButton(1, (context.height), "< < < Return", returnToMenu, {}, nil, gui.primaryColor())
-    local divider = renderer.createObject(math.floor(context.width / 4) - 3, 2, 7, 1, true)
-    context.gpu.setActiveBuffer(divider)
-    --draw lower divider
-    local dividervert = renderer.createObject(1, context.height - 1, context.width, 1)
-    context.gpu.setActiveBuffer(dividervert)
-    local bar = "▂▂▂"
-    for i = 1, context.width - 6 do bar = bar .. "▄" end
-    local bar = bar .. "▂▂▂"
-    graphics.text(1, 1, bar, gui.borderColor())
-    --draw middle divider
-    context.gpu.setActiveBuffer(renderer.createObject(middle, 1, 1, context.height - 1))
-    for i=1, context.height - 2 do
-        graphics.text(middle, i, "▐", gui.borderColor())
-    end
-    graphics.text(middle, context.height - 1, "▟", gui.borderColor())
-    context.gpu.setActiveBuffer(0)
-    renderer.update()
-    --TODO rest of window draw
-end
-
+--]]
 local function returnToMenu()
     drawn = false
     renderer.switchWindow("main")
@@ -134,8 +142,40 @@ local function returnToMenu()
     renderer.update()
 end
 
+--main window draw
+local function displayWindow()
+    drawn = true
+    load()
+    local context = graphics.context()
+    local height = context.height
+    local middle = math.floor(context.width / 2)
+    renderer.switchWindow("OreProcessing")
+    gui.smallButton(1, context.height, "< < < Return", returnToMenu, {}, nil, gui.primaryColor())
+    --local divider = renderer.createObject(math.floor(context.width / 4) - 3, 2, 7, 1, true)
+    --draw lower divider
+    local divider = renderer.createObject(1, context.height - 1, context.width, 1)
+    context.gpu.setActiveBuffer(divider)
+    local bar = "▂▂▂"
+    for i = 1, context.width - 6 do bar = bar .. "▄" end
+    local bar = bar .. "▂▂▂"
+    graphics.text(1, 1, bar, gui.borderColor())
+    graphics.text(middle, 1, "▟", gui.borderColor())
+    context.gpu.setActiveBuffer(0)
+    --draw middle divider
+    local dividervert = renderer.createObject(middle, 1, 1, height - 2)
+    context.gpu.setActiveBuffer(dividervert)
+    for i = 1, height - 2 do
+        graphics.text(1, i * 2 - 1, "▐", gui.borderColor())
+    end
+    context.gpu.setActiveBuffer(0)
+    displayFilters()
+    searchBox()
+    graphics.text(context.width / 4 - 3, 3, "Filters", colors.white)
+    renderer.update()
+end
 
-local refresh = nil
+
+local refresh
 local currentConfigWindow = {}
 --changes config window values
 local function changeAddr(transposerAddress, indexNumber, data)
@@ -148,7 +188,12 @@ local function changeAddr(transposerAddress, indexNumber, data)
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
     renderer.removeObject(currentConfigWindow)
-    refresh(x, y, gui, graphics, renderer, page)
+    refresh(x, y, gui, graphics, renderer, page) --alias for OreProcessing.configure()
+end
+
+--provides the button to access filter page
+function OreProcessing.windowButton()
+    return {name = "OreFilters", func = displayWindow}
 end
 
 --provides configuration page from main menu
@@ -179,13 +224,18 @@ function OreProcessing.configure(x, y, gui, graphics, renderer, page)
     return currentConfigWindow
 end
 refresh = OreProcessing.configure
---provides the button to access filter page
-function OreProcessing.windowButton()
-    return {name = "Ore Filters", func = displayWindow}
-end
+
+local lastKeyword = searchKey.keyword
 --main loop
-function OreProcessing.update(data)
+function OreProcessing.update()
     --TODO this
+    if drawn then
+        graphics.context().gpu.setActiveBuffer(0)
+    end
+    if drawn and lastKeyword ~= searchKey.keyword then
+        displayFilters(searchKey.keyword)
+        lastKeyword = searchKey.keyword
+    end
 end
 
 return OreProcessing
