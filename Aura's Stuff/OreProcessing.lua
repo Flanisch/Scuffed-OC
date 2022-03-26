@@ -24,6 +24,7 @@ local searchKey = {keyword = ""}
 local logoPage
 local pageBuffer = {}
 local input = {}
+local savingMode
 local shouldListen = {listen = false, args = {}}
 local filterOutputs = {
     primary = TBD,
@@ -45,16 +46,22 @@ local outputChoices = {
 }
 
 local debugnumber = 0
-local function debugnum(num)
+local function debugnum(num, y, type)
+    local screenY
+    if y then screenY = y else screenY = 1 end
+    require("term").setCursor(1,screenY)
     if num ~= nil then
-        print(num)
+        if type == "table" then
+            for k, v in pairs(num) do print(k, v) end
+        else
+            print(num)
+        end
     else
         print(debugnumber)
         debugnumber = debugnumber + 1
     end
-    require("term").setCursor(1,1)
 end
---- saves table of filters and transposer addresses to file
+
 local function save()
     local file = io.open("/home/NIDAS/settings/oreFilters", "w")
     file:write(serialization.serialize(oreFilters))
@@ -64,7 +71,7 @@ local function save()
     file:close()
     windowRefresh(searchKey.keyword)
 end
---- loads table of filters and transposer addresses to memory
+
 local function load()
     local file = io.open("/home/NIDAS/settings/oreFilters", "r")
     if file then
@@ -79,35 +86,27 @@ local function load()
     end
 end
 
---- searches table for matching entries
----@param data table @ oreFilters
----@param keyword string @ search keyword
----@return table
 local function filterByLabel(data, keyword)
     local filtered = {}
     for key, value in pairs(data) do
-        if string.find(string.lower(key), string.lower(keyword)) ~= nil then
+        if string.find(string.lower(value.name), string.lower(keyword)) ~= nil then
             filtered[key] = value
         end
     end
     return filtered
 end
 
---- searches oreFilters for a name match
----@param name string @ filter name
----@return boolean
-local function searchFilter(name)
+local function searchFilter(keyword)
     for ID, entry in pairs(oreFilters) do
-        if entry == name then
+        if entry.name == keyword then
             return ID
         end
     end
     return false
 end
 
---- adds a filter to oreFilters
----@return boolean
 local function addFilter(name, filter)
+    component.computer.beep(500, 0.2)
     if not searchFilter(name) then
         table.insert(oreFilters, {name = name, filter = filter})
         save()
@@ -118,8 +117,6 @@ local function addFilter(name, filter)
     end
 end
 
---- modifies a filter to change where that ore goes
----@return boolean
 local function modifyFilter(filter, desired)
     local target = searchFilter(filter)
     if target then
@@ -132,9 +129,6 @@ local function modifyFilter(filter, desired)
     end
 end
 
---- removes a filter from oreFilters
----@param name string @ filter name
----@return boolean
 local function removeFilter(name)
     local target = searchFilter(name)
     if target then
@@ -147,7 +141,7 @@ local function removeFilter(name)
     end
 end
 
---- "Are you sure about that?" Generates a 10x3 button at reference coordinates for confirmation purposes
+--- Generates a 10x3 button at reference coordinates for confirmation purposes
 ---@param x number @ reference coordinate
 ---@param y number @ reference coordinate
 ---@return boolean
@@ -172,17 +166,18 @@ local function pagePrep()
         renderer.removeObject(pageBuffer)
         pageBuffer = {}
     end
+    input = {}
+    shouldListen.listen = false
+    savingMode = nil
     context.gpu.fill(middle + 1, 1, context.width - middle, context.height - 2, " ")
 end
 
---- generates a save button at the top right of the screen
----@param mode string @ either "save" or "modify"
----@param data table @ 
-local function saveButton(mode, data)
+local function saveButton(_, mode)
     local context = graphics.context()
     local savemode
-    local name = data.name
-    local filter = data.filter
+    local name = input["name"]
+    local filter = input["filter"]
+    print(mode)
     if mode == "save" then
         savemode = addFilter
     elseif mode == "modify" then
@@ -195,21 +190,15 @@ end
 local function cancel()
     pagePrep()
     windowRefresh()
-    input = {}
-    shouldListen.listen = false
-    shouldListen.args = {}
     event.ignore("filter_manipulation", saveButton)
 end
---- generates a cancel button
+
 local function cancelButton()
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
     table.insert(pageBuffer, gui.bigButton(context.width - 8, context.height - 5, "Cancel", cancel))
 end
 
---- draws a page's logo
----@param logo table @ logo information
----@return number @ NIDAS page number
 local function drawLogo(logo)
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
@@ -221,8 +210,9 @@ local function drawLogo(logo)
     return logoPage
 end
 
---- draws page to add a filter
 local function addPage()
+    component.computer.beep(500, 0.2)
+
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
     local length = context.width - middle - 5
@@ -243,26 +233,26 @@ local function addPage()
     --TODO rest of data here
     context.gpu.setActiveBuffer(0)
     local attributeData = {
-         {name = "", attribute = name, type = "string", defaultValue = "None"},
-         {name = "", attribute = filter, type = "number", defaultValue = "None"}
+         {name = "", attribute = "name", type = "string", defaultValue = "None"},
+         {name = "", attribute = "filter", type = "number", defaultValue = "None"}
     }
     gui.multiAttributeList(middle + 16, 7, editor, nameInput, attributeData, input)
     shouldListen.listen = true
+    savingMode = "save"
     table.insert(pageBuffer, nameInput)
-    shouldListen.eventID = event.listen("filter_manipulation", saveButton)
+    event.listen("filter_manipulation", saveButton)
 
     cancelButton()
     renderer.update()
 end
 
---- draws page to modify a filter
----@param filter string @ name of filter
-local function modifyPage(filter)
+local function modifyPage(id)
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
     local length = context.width - middle - 5
-    local filter = oreFilters[filter]
-    input[filter] = filter.filter
+    local filter = oreFilters[id]
+    input["name"] = filter.name
+    input["filter"] = filter.filter
     local logo = {
         "███ ██◣ ◥█◤ ◥█◤   ███ ◥█◤ █   ◥█◤ ███ ██◣",
         "█▄  █ █  █   █    █▅   █  █    █  █▄  █ ◤",
@@ -278,16 +268,32 @@ local function modifyPage(filter)
     graphics.text(1, 7, "Filter Name:   "..(filter.name or "ERROR"), colors.white)
     graphics.text(1, 9, "Filter Output:", colors.white)
     local attributeData = {
-        {name = "", attribute = filter, type = "number", defaultValue = filter.filter or "ERROR"}
+        {name = "", attribute = "filter", type = "number", defaultValue = filter.filter or "ERROR"}
     }
     gui.multiAttributeList(middle + 16, 8, editor, nameInput, attributeData, input)
+    local information = {
+        {text = "The available filters are as follows:", color = colors.white},
+        {text = "1: primary output (macerate-centrifuge-output)"},
+        {text = "2: purify with orewasher (orewash-recycle)"},
+        {text = "3: purify with chembath with mercury (chembath-recycle)"},
+        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
+        {text = "5: primary-smelt (smelt-macerate-package-output)"},
+        {text = "6: sift (sift-output)"},
+        {text = "7: special (output)"},
+        {},
+        {text = "\"Recycle\" means the item is sent back to working storage.", color = colors.white}
+    }
+    information[filter.filter + 1].color = gui.primaryColor()
+    table.insert(pageBuffer, gui.multiLineText(middle + 2, 12, information, gui.borderColor()))
     context.gpu.setActiveBuffer(0)
+    shouldListen.listen = true
+    savingMode = "modify"
+    event.listen("filter_manipulation", saveButton)
 
     cancelButton()
     renderer.update()
 end
 
---- draws page showing information
 local function aboutPage()
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
@@ -299,7 +305,17 @@ local function aboutPage()
     pagePrep()
     drawLogo(logo)
     --draw other information here
+    local aboutText = {
+        {text = "1: primary output (macerate-centrifuge-output)"},
+        {text = "2: purify with orewasher (orewash-recycle)"},
+        {text = "3: purify with chembath with mercury (chembath-recycle)"},
+        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
+        {text = "5: primary-smelt (smelt-macerate-package-output)"},
+        {text = "6: sift (sift-output)"},
+        {text = "7: special (output)"}
+    }
     table.insert(pageBuffer, gui.bigButton(context.width - 12, 1, "Add Filter", addPage))
+    table.insert(pageBuffer, gui.multiLineText(64, 5, aboutText, colors.white))
     renderer.update()
 end
 
@@ -318,11 +334,10 @@ local function displayFilters(filterString)
             renderer.removeObject(idPages)
         end
         local buttons = {}
-        for k, _ in pairs(filters) do
-            local label = filters[k]
+        for k, entry in pairs(filters) do
             table.insert(
                 buttons,
-                {name = label.name, func = modifyPage, args = {k}}
+                {name = filters[k].name, func = modifyPage, args = {k}}
             )
             if k > maxEntries then break end
         end
@@ -335,7 +350,6 @@ local function displayFilters(filterString)
 end
 refreshFilters = displayFilters
 
---- draws a search box
 local function searchBox()
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
@@ -373,12 +387,13 @@ the filters are:
 6: sift (sift-output)
 7: special (output)
 
-it is technically an array with the value as a table
 --]]
 
----returns to NIDAS main menu
 local function returnToMenu()
     drawn = false
+    shouldListen.listen = false
+    shouldListen.args = {}
+    input = {}
     renderer.switchWindow("main")
     renderer.clearWindow("OreProcessing")
     renderer.update()
@@ -410,8 +425,10 @@ local function displayWindow()
     end
     context.gpu.setActiveBuffer(0)
     --function calls to draw extra stuff
-    displayFilters()
+    displayFilters()            --refer to line 466
     searchBox()
+    context.gpu.setActiveBuffer(0)
+    renderer.update()
     aboutPage()
     renderer.update()
 end
@@ -419,10 +436,7 @@ end
 windowRefresh = aboutPage
 local refresh
 local currentConfigWindow = {}
----changes config window values
----@param transposerAddress string @ address of transposer
----@param indexNumber number @ index number in oreAddr
----@param data table @ rendering data for refreshing config window
+
 local function changeAddr(transposerAddress, indexNumber, data)
     if transposerAddress == "None" then
         oreAddr[indexNumber] = "None"
@@ -436,15 +450,10 @@ local function changeAddr(transposerAddress, indexNumber, data)
     refresh(x, y, gui, graphics, renderer, page) --alias for OreProcessing.configure()
 end
 
----provides the button to access filter page
----@return table @ NIDAS data
 function OreProcessing.windowButton()
     return {name = "OreFilters", func = displayWindow}
 end
 
----provides configuration page from main menu
----@param all any @ rendering data
----@return table @ NIDAS config window data
 function OreProcessing.configure(x, y, gui, graphics, renderer, page)
     local renderingData = {x, y, gui, graphics, renderer, page}
     graphics.context().gpu.setActiveBuffer(page)
@@ -474,24 +483,25 @@ end
 refresh = OreProcessing.configure
 
 local lastKeyword = searchKey.keyword
+
 --- main loop
 function OreProcessing.update()
-    --TODO this
     if drawn then
         graphics.context().gpu.setActiveBuffer(0)
     end
-    if drawn and lastKeyword ~= searchKey.keyword then
-        displayFilters(searchKey.keyword)
-        lastKeyword = searchKey.keyword
+    if drawn and lastKeyword ~= searchKey.keyword then      --since there's a bigger bug when displayWindow() calls displayFilters() WITH the proper arg rather than without,
+        displayFilters(searchKey.keyword)                   --I'm not going to have it called with said arg to avoid said bug
+        lastKeyword = searchKey.keyword                     --even though it makes this section of code useless, /shrug
     end
     if shouldListen.listen then
-        debugnum()
-        if input.name and input.filter then 
-            if string.match(tostring(input.filter), "[1234567]") then
-                shouldListen.args = input
-                event.push("filter_manipulation", shouldListen.args)
+        debugnum(input["name"])
+        debugnum(input["filter"], 2)
+        debugnum(input, 3, "table")
+        if input["name"] and input["filter"] then 
+            if string.match(tostring(input["filter"]), "[1234567]") then
+                event.push("filter_manipulation", savingMode)
                 shouldListen.listen = false
-                shouldListen.args = {}
+
             end
         end
     end
