@@ -1,6 +1,5 @@
 local OreProcessing = {}
 
---library pulls
 local component = require("component")
 local serialization = require("serialization")
 local colors = require("lib.graphics.colors")
@@ -8,8 +7,8 @@ local gui = require("lib.graphics.gui")
 local graphics = require("lib.graphics.graphics")
 local renderer = require("lib.graphics.renderer")
 local event = require("event")
+local sides = require("sides")
 
---variable initializations
 local dummy = {}
 local transposer = {}
 local editorPage
@@ -26,6 +25,8 @@ local pageBuffer = {}
 local input = {}
 local savingMode
 local shouldListen = {listen = false, args = {}}
+local orientation
+local transposerSides = {}
 local filterOutputs = {
     primary = TBD,
     orewash = TBD,
@@ -34,15 +35,6 @@ local filterOutputs = {
     smelt = TBD,
     sift = TBD,
     special = TBD
-}
-local outputChoices = {
-    {displayName = "Primary Output", value = filterOutputs.primary},
-    {displayName = "Purify (Ore Wash)", value = filterOutputs.orewash},
-    {displayName = "Purify (Mercury Bath)", value = filterOutputs.chembath},
-    {displayName = "Tertiary Output", value = filterOutputs.tertiary},
-    {displayName = "Smelt", value = filterOutputs.smelt},
-    {displayName = "Sift", value = filterOutputs.sift},
-    {displayName = "Special", value = filterOutputs.special}
 }
 
 local debugnumber = 0
@@ -69,7 +61,6 @@ local function save()
     local file = io.open("/home/NIDAS/settings/oreAddr", "w")
     file:write(serialization.serialize(oreAddr))
     file:close()
-    windowRefresh(searchKey.keyword)
 end
 
 local function load()
@@ -83,6 +74,8 @@ local function load()
     if file then
         oreAddr = serialization.unserialize(file:read("*a")) or {}
         file:close()
+        transposer = {component.proxy(component.get(oreAddr[1])), component.proxy(component.get(oreAddr[2]))}
+        orientation = oreAddr[3]
     end
 end
 
@@ -149,12 +142,12 @@ local function confirm(x, y)
     local context = graphics.context()
     local buttonpage
     local function yes()
-        renderer.removeObject(buttonpage)
-        context.gpu.fill(x, y, 10, 3, " ")
-        renderer.update()
+        removeFilter(input["name"])
+        windowRefresh()
         return true
     end
     buttonpage = gui.bigButton(x, y, "Confirm?", yes)
+    table.insert(pageBuffer, buttonpage)
     renderer.update()
 end
 
@@ -251,8 +244,6 @@ local function modifyPage(id)
     local middle = math.floor(context.width / 2)
     local length = context.width - middle - 5
     local filter = oreFilters[id]
-    input["name"] = filter.name
-    input["filter"] = filter.filter
     local logo = {
         "███ ██◣ ◥█◤ ◥█◤   ███ ◥█◤ █   ◥█◤ ███ ██◣",
         "█▄  █ █  █   █    █▅   █  █    █  █▄  █ ◤",
@@ -271,6 +262,7 @@ local function modifyPage(id)
         {name = "", attribute = "filter", type = "number", defaultValue = filter.filter or "ERROR"}
     }
     gui.multiAttributeList(middle + 16, 8, editor, nameInput, attributeData, input)
+    input["name"] = filter.name
     local information = {
         {text = "The available filters are as follows:", color = colors.white},
         {text = "1: primary output (macerate-centrifuge-output)"},
@@ -291,6 +283,7 @@ local function modifyPage(id)
     event.listen("filter_manipulation", saveButton)
 
     cancelButton()
+    table.insert(pageBuffer, gui.bigButton(middle + 2, context.height - 5, "Remove Filter", confirm, {middle + 18,context.height - 5}))
     renderer.update()
 end
 
@@ -386,6 +379,7 @@ the filters are:
 5: primary-smelt (smelt-macerate-package-output)
 6: sift (sift-output)
 7: special (output)
+8: excess (output)
 
 --]]
 
@@ -427,25 +421,119 @@ local function displayWindow()
     --function calls to draw extra stuff
     displayFilters()            --refer to line 466
     searchBox()
-    context.gpu.setActiveBuffer(0)
-    renderer.update()
     aboutPage()
     renderer.update()
+end
+
+--[[
+physical section of the code
+how I want to do this
+     1    6
+  2[t1]w[t2]5
+    3    4
+where w is the working storage
+
+transposer.transferItem(sourceSide, sinkSide)
+]]
+
+local function setSides()
+    if orientation == "North" then
+        transposerSides[1] = sides.north
+        transposerSides[2] = sides.west
+        transposerSides[3] = sides.south
+        transposerSides[4] = sides.south
+        transposerSides[5] = sides.east
+        transposerSides[6] = sides.north
+        transposerSides[7] = sides.up
+        transposerSides[8] = sides.up
+        transposerSides["work"] = {sides.east, sides.west}
+    elseif orientation == "South" then
+        transposerSides[1] = sides.south
+        transposerSides[2] = sides.east
+        transposerSides[3] = sides.north
+        transposerSides[4] = sides.north
+        transposerSides[5] = sides.west
+        transposerSides[6] = sides.south
+        transposerSides[7] = sides.up
+        transposerSides[8] = sides.up
+        transposerSides["work"] = {sides.west, sides.east}
+    elseif orientation == "East" then
+        transposerSides[1] = sides.east
+        transposerSides[2] = sides.north
+        transposerSides[3] = sides.west
+        transposerSides[4] = sides.west
+        transposerSides[5] = sides.south
+        transposerSides[6] = sides.east
+        transposerSides[7] = sides.up
+        transposerSides[8] = sides.up
+        transposerSides["work"] = {sides.south, sides.north}
+    elseif orientation == "West" then
+        transposerSides[1] = sides.west
+        transposerSides[2] = sides.south
+        transposerSides[3] = sides.east
+        transposerSides[4] = sides.east
+        transposerSides[5] = sides.north
+        transposerSides[6] = sides.west
+        transposerSides[7] = sides.up
+        transposerSides[8] = sides.up
+        transposerSides["work"] = {sides.north, sides.south}
+    end
+end
+
+local function checkInventory(inventory)
+    local output
+    local toUse
+    if inventory == 0 then
+        output = transposer[1].getStackInSlot(transposerSides["work"][1], 1)
+    elseif inventory <= 3 or inventory == 8 then
+        output = transposer[1].getStackInSlot(transposerSides[inventory], 1)
+        toUse = 1
+    else
+        output = transposer[2].getStackInSlot(transposerSides[inventory], 1)
+        toUse = 2
+    end
+    local label = false
+    if output then
+        label = output.label
+    end
+    return {label, toUse}
+end
+
+local function checkDatabase()
+    local item, _ = table.unpack(checkInventory(0))
+    if searchFilter(item) then
+        return oreFilters[searchFilter(item)].filter
+    end
+    return false
+end
+
+local function moveItem(output)
+    local label, _ = table.unpack(checkInventory(0))
+    local used, toUse = table.unpack(checkInventory(output))
+    if not used then
+        transposer[toUse].transferItem(transposerSides["work"][toUse], transposerSides[output])
+        return true
+    end
+    return false
 end
 
 windowRefresh = aboutPage
 local refresh
 local currentConfigWindow = {}
 
-local function changeAddr(transposerAddress, indexNumber, data)
-    if transposerAddress == "None" then
+local function changeSetting(settingData, indexNumber, data)
+    if indexNumber == 3 then
+        oreAddr[indexNumber] = settingData
+        orientation = settingData    
+    elseif settingData == "None" then
         oreAddr[indexNumber] = "None"
         transposer[indexNumber] = nil
     else
-        oreAddr[indexNumber] = transposerAddress
-        transposer[indexNumber] = component.proxy(component.get(transposerAddress))
+        oreAddr[indexNumber] = settingData
+        transposer[indexNumber] = component.proxy(component.get(settingData))
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
+    setSides()
     renderer.removeObject(currentConfigWindow)
     refresh(x, y, gui, graphics, renderer, page) --alias for OreProcessing.configure()
 end
@@ -458,23 +546,29 @@ function OreProcessing.configure(x, y, gui, graphics, renderer, page)
     local renderingData = {x, y, gui, graphics, renderer, page}
     graphics.context().gpu.setActiveBuffer(page)
     local function findTransposers(index)
-        local onActivation = {}
-        table.insert(onActivation, {displayName = "None", value = changeAddr, args = {"None", index, renderingData}})
+        local onActivationTransposer = {}
+        table.insert(onActivationTransposer, {displayName = "None", value = changeSetting, args = {"None", index, renderingData}})
         for address, componentType in component.list() do
             if componentType == "transposer" then
-                local displayName = address
-                table.insert(onActivation, {displayName = displayName, value = changeAddr, args = {address, index, renderingData}})
+                table.insert(onActivationTransposer, {displayName = address, value = changeSetting, args = {address, index, renderingData}})
             end
         end
-        return onActivation
+        return onActivationTransposer
     end
     for i=1, 2 do
         graphics.text(3, (i * 2) + 3, "Transposer "..tostring(i)..":")
     end
+    graphics.text(3, 11, "Orientation:")
     for i=1, 2 do
-        --graphics.text(x+2, (i * 2) + 3, "Transposer "..tostring(i)..":")
         table.insert(currentConfigWindow, gui.smallButton(x+15, y+1+i, oreAddr[i] or "None", gui.selectionBox, {x+16, y+i+1, findTransposers(i)}))
     end
+    local onActivationOrientation = {
+        {displayName = "North", value = changeSetting, args = {"North", 3, renderingData}},
+        {displayName = "South", value = changeSetting, args = {"South", 3, renderingData}},
+        {displayName = "East", value = changeSetting, args = {"East", 3, renderingData}},
+        {displayName = "West", value = changeSetting, args = {"West", 3, renderingData}},
+    }
+    table.insert(currentConfigWindow, gui.smallButton(x+15, y+5, orientation, gui.selectionBox, {x+15, y+5, onActivationOrientation}))
     local _, ySize = graphics.context().gpu.getBufferSize(page)
     table.insert(currentConfigWindow, gui.bigButton(x+2, y+tonumber(ySize)-4, "Save Configuration", save))
     renderer.update()
@@ -485,18 +579,22 @@ refresh = OreProcessing.configure
 local lastKeyword = searchKey.keyword
 
 --- main loop
+load()
+setSides()
+local item
 function OreProcessing.update()
+    item = checkDatabase()
+    if item then
+        moveItem(item)
+    end
     if drawn then
         graphics.context().gpu.setActiveBuffer(0)
     end
-    if drawn and lastKeyword ~= searchKey.keyword then      --since there's a bigger bug when displayWindow() calls displayFilters() WITH the proper arg rather than without,
-        displayFilters(searchKey.keyword)                   --I'm not going to have it called with said arg to avoid said bug
-        lastKeyword = searchKey.keyword                     --even though it makes this section of code useless, /shrug
-    end
+    --if drawn and lastKeyword ~= searchKey.keyword then      --since there's a bigger bug when displayWindow() calls displayFilters() WITH the proper arg rather than without,
+        --displayFilters(searchKey.keyword)                   --I'm not going to have it called with said arg to avoid said bug
+        --lastKeyword = searchKey.keyword                     --even though it makes this section of code useless, /shrug
+    --end
     if shouldListen.listen then
-        debugnum(input["name"])
-        debugnum(input["filter"], 2)
-        debugnum(input, 3, "table")
         if input["name"] and input["filter"] then 
             if string.match(tostring(input["filter"]), "[1234567]") then
                 event.push("filter_manipulation", savingMode)

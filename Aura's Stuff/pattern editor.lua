@@ -44,10 +44,11 @@ local numberOfSlots, mod = processAmount(amount)
 for i=1, 6, 1 do
     if i <= numberOfSlots then
         me.setInterfacePatternOutput(1, db.address, 1, 64, i)
-    else if mod ~= 0 then
+    elseif mod ~= 0 then
         me.setInterface(1, db.address, 1, mod, i)
     else
         --something here that removes the slot
+    end
 end
 if isMod then
     me.setInterfacePatternOutput(1, db.address, 1, mod, modSlot)
