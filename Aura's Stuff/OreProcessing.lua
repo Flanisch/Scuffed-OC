@@ -9,9 +9,7 @@ local renderer = require("lib.graphics.renderer")
 local event = require("event")
 local sides = require("sides")
 
-local dummy = {}
 local transposer = {}
-local editorPage
 drawn = false
 local idPages
 local oreAddr = {}
@@ -27,15 +25,6 @@ local savingMode
 local shouldListen = {listen = false, args = {}}
 local orientation
 local transposerSides = {}
-local filterOutputs = {
-    primary = TBD,
-    orewash = TBD,
-    chembath = TBD,
-    tertiary = TBD,
-    smelt = TBD,
-    sift = TBD,
-    special = TBD
-}
 
 local debugnumber = 0
 local function debugnum(num, y, type)
@@ -223,17 +212,30 @@ local function addPage()
     graphics.text(math.floor(length / 2) - 6, 1, "Filter Entry", gui.primaryColor())
     graphics.text(1, 7, "Filter Name:", colors.white)
     graphics.text(1, 9, "Filter Output:", colors.white)
-    --TODO rest of data here
-    context.gpu.setActiveBuffer(0)
     local attributeData = {
          {name = "", attribute = "name", type = "string", defaultValue = "None"},
          {name = "", attribute = "filter", type = "number", defaultValue = "None"}
     }
     gui.multiAttributeList(middle + 16, 7, editor, nameInput, attributeData, input)
+    local information = {
+        {text = "The available filters are as follows:"},
+        {text = "1: primary output (macerate-centrifuge-output)"},
+        {text = "2: purify with orewasher (orewash-recycle)"},
+        {text = "3: purify with chembath with mercury (chembath-recycle)"},
+        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
+        {text = "5: primary-smelt (smelt-macerate-package-output)"},
+        {text = "6: sift (sift-output)"},
+        {text = "7: special (output)"},
+        {},
+        {text = "\"Recycle\" means the item is sent back to working storage."}
+    }
+    gui.multiLineText(1, 12, information, colors.white)
+
     shouldListen.listen = true
     savingMode = "save"
     table.insert(pageBuffer, nameInput)
     event.listen("filter_manipulation", saveButton)
+    context.gpu.setActiveBuffer(0)
 
     cancelButton()
     renderer.update()
@@ -276,14 +278,37 @@ local function modifyPage(id)
         {text = "\"Recycle\" means the item is sent back to working storage.", color = colors.white}
     }
     information[filter.filter + 1].color = gui.primaryColor()
-    table.insert(pageBuffer, gui.multiLineText(middle + 2, 12, information, gui.borderColor()))
-    context.gpu.setActiveBuffer(0)
+    gui.multiLineText(1, 12, information, gui.borderColor())
     shouldListen.listen = true
     savingMode = "modify"
     event.listen("filter_manipulation", saveButton)
-
+    context.gpu.setActiveBuffer(0)
+    
     cancelButton()
     table.insert(pageBuffer, gui.bigButton(middle + 2, context.height - 5, "Remove Filter", confirm, {middle + 18,context.height - 5}))
+    renderer.update()
+end
+
+local function page2()
+    local context = graphics.context()
+    local middle = math.floor(context.width / 2)
+    local logo = {
+        "◥█◤ █◣█ ███ ◢█◣",
+        " █  ███ █▅  █ █",
+        "◢█◣ █◥█ █   ◥█◤"
+    }
+    pagePrep()
+    drawLogo(logo)
+    local infoPanel = renderer.createObject(middle + 2, 5, context.width - middle - 2, context.height - 7)
+    table.insert(pageBuffer, infoPanel)
+    context.gpu.setActiveBuffer(infoPanel)
+    local secondPage = {
+        {text = "text"}
+    }
+    gui.multiLineText(1, 1, secondPage, colors.white)
+    context.gpu.setActiveBuffer(0)
+    table.insert(pageBuffer, gui.bigButton(context.width - 12, 1, "Add Filter", addPage))
+    table.insert(pageBuffer, gui.bigButton(middle + 2, context.height - 5, "Return", windowRefresh))
     renderer.update()
 end
 
@@ -298,17 +323,35 @@ local function aboutPage()
     pagePrep()
     drawLogo(logo)
     --draw other information here
+    local infoPanel = renderer.createObject(middle + 2, 5, context.width - middle - 2, context.height - 7)
+    table.insert(pageBuffer, infoPanel)
+    context.gpu.setActiveBuffer(infoPanel)
     local aboutText = {
-        {text = "1: primary output (macerate-centrifuge-output)"},
-        {text = "2: purify with orewasher (orewash-recycle)"},
-        {text = "3: purify with chembath with mercury (chembath-recycle)"},
-        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
-        {text = "5: primary-smelt (smelt-macerate-package-output)"},
-        {text = "6: sift (sift-output)"},
-        {text = "7: special (output)"}
+        {text = "This module requires a specific physical setup to operate.", color = gui.primaryColor()},
+        {text = "This module runs off of a pair of transposers that pull"},
+        {text = "from a central \"working inventory\" into 8 output chests."},
+        {text = "Note: all chests used must have only 1 slot. I might", color = colors.red},
+        {text = "change this later if I care and performance doesn't get", color = colors.red},
+        {text = "hurt. Valid chests include baby chests, dirt chests, etc.", color = colors.red},
+        {text = "Place the transposers and chests like so:"},
+        {},
+        {text = "    [1]     [6]"},
+        {text = "[2][T/8][W][T/7][5]"},
+        {text = "    [3]     [4]"},
+        {},
+        {text = "Where [T] = the transposers, [W] = working inventory,"},
+        {text = "and [number] = output chest."},
+        {text = "Outputs 7 and 8 go on top of the transposers.", color = gui.primaryColor()},
+        {text = "Route the cables on the bottom. Connect each chest to its"},
+        {text = "correlated processing line. Stackwise item extraction is"},
+        {text = "highly recommended."}
     }
+    if oreAddr.help then
+        gui.multiLineText(1, 1, aboutText, colors.white)
+        table.insert(pageBuffer, gui.bigButton(context.width - 8, context.height - 5, "Page 2", page2))
+    end
+    context.gpu.setActiveBuffer(0)
     table.insert(pageBuffer, gui.bigButton(context.width - 12, 1, "Add Filter", addPage))
-    table.insert(pageBuffer, gui.multiLineText(64, 5, aboutText, colors.white))
     renderer.update()
 end
 
@@ -433,7 +476,6 @@ how I want to do this
     3    4
 where w is the working storage
 
-transposer.transferItem(sourceSide, sinkSide)
 ]]
 
 local function setSides()
@@ -501,8 +543,10 @@ end
 
 local function checkDatabase()
     local item, _ = table.unpack(checkInventory(0))
-    if searchFilter(item) then
+    if item and searchFilter(item) then
         return oreFilters[searchFilter(item)].filter
+    elseif item then
+        return 8
     end
     return false
 end
@@ -569,6 +613,7 @@ function OreProcessing.configure(x, y, gui, graphics, renderer, page)
         {displayName = "West", value = changeSetting, args = {"West", 3, renderingData}},
     }
     table.insert(currentConfigWindow, gui.smallButton(x+15, y+5, orientation, gui.selectionBox, {x+15, y+5, onActivationOrientation}))
+    gui.multiAttributeList(x + 3, y + 7, page, currentConfigWindow, {{name = "Setup Assistance:", attribute = "help", type = "boolean", defaultValue = true}}, oreAddr)
     local _, ySize = graphics.context().gpu.getBufferSize(page)
     table.insert(currentConfigWindow, gui.bigButton(x+2, y+tonumber(ySize)-4, "Save Configuration", save))
     renderer.update()
@@ -590,10 +635,10 @@ function OreProcessing.update()
     if drawn then
         graphics.context().gpu.setActiveBuffer(0)
     end
-    --if drawn and lastKeyword ~= searchKey.keyword then      --since there's a bigger bug when displayWindow() calls displayFilters() WITH the proper arg rather than without,
-        --displayFilters(searchKey.keyword)                   --I'm not going to have it called with said arg to avoid said bug
-        --lastKeyword = searchKey.keyword                     --even though it makes this section of code useless, /shrug
-    --end
+    if drawn and lastKeyword ~= searchKey.keyword then      --since there's a bigger bug when displayWindow() calls displayFilters() WITH the proper arg rather than without,
+        displayFilters(searchKey.keyword)                   --I'm not going to have it called with said arg to avoid said bug
+        lastKeyword = searchKey.keyword                     --even though it makes this section of code useless, /shrug
+    end
     if shouldListen.listen then
         if input["name"] and input["filter"] then 
             if string.match(tostring(input["filter"]), "[1234567]") then
