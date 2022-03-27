@@ -88,7 +88,6 @@ local function searchFilter(keyword)
 end
 
 local function addFilter(name, filter)
-    component.computer.beep(500, 0.2)
     if not searchFilter(name) then
         table.insert(oreFilters, {name = name, filter = filter})
         save()
@@ -193,8 +192,6 @@ local function drawLogo(logo)
 end
 
 local function addPage()
-    component.computer.beep(500, 0.2)
-
     local context = graphics.context()
     local middle = math.floor(context.width / 2)
     local length = context.width - middle - 5
@@ -218,16 +215,14 @@ local function addPage()
     }
     gui.multiAttributeList(middle + 16, 7, editor, nameInput, attributeData, input)
     local information = {
-        {text = "The available filters are as follows:"},
-        {text = "1: primary output (macerate-centrifuge-output)"},
-        {text = "2: purify with orewasher (orewash-recycle)"},
-        {text = "3: purify with chembath with mercury (chembath-recycle)"},
-        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
-        {text = "5: primary-smelt (smelt-macerate-package-output)"},
-        {text = "6: sift (sift-output)"},
-        {text = "7: special (output)"},
-        {},
-        {text = "\"Recycle\" means the item is sent back to working storage."}
+        {text = "The available filters are as follows:", color = colors.white},
+        {text = "1: Primary Byproduct"},
+        {text = "2: Ore Washer Purification (Secondary Byproduct)"},
+        {text = "3: Chemical Bath Purification Using Mercury (Secondary BP)"},
+        {text = "4: Tertiary Byproduct"},
+        {text = "5: Smelting"},
+        {text = "6: Gem Sifting"},
+        {text = "7: Special Uses"}
     }
     gui.multiLineText(1, 12, information, colors.white)
 
@@ -263,22 +258,20 @@ local function modifyPage(id)
     local attributeData = {
         {name = "", attribute = "filter", type = "number", defaultValue = filter.filter or "ERROR"}
     }
-    gui.multiAttributeList(middle + 16, 8, editor, nameInput, attributeData, input)
     input["name"] = filter.name
     local information = {
         {text = "The available filters are as follows:", color = colors.white},
-        {text = "1: primary output (macerate-centrifuge-output)"},
-        {text = "2: purify with orewasher (orewash-recycle)"},
-        {text = "3: purify with chembath with mercury (chembath-recycle)"},
-        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
-        {text = "5: primary-smelt (smelt-macerate-package-output)"},
-        {text = "6: sift (sift-output)"},
-        {text = "7: special (output)"},
-        {},
-        {text = "\"Recycle\" means the item is sent back to working storage.", color = colors.white}
+        {text = "1: Primary Byproduct"},
+        {text = "2: Ore Washer Purification (Secondary Byproduct)"},
+        {text = "3: Chemical Bath Purification Using Mercury (Secondary BP)"},
+        {text = "4: Tertiary Byproduct"},
+        {text = "5: Smelting"},
+        {text = "6: Gem Sifting"},
+        {text = "7: Special Uses"}
     }
     information[filter.filter + 1].color = gui.primaryColor()
-    gui.multiLineText(1, 12, information, gui.borderColor())
+    gui.multiLineText(1, 7, information, gui.borderColor())
+    gui.multiAttributeList(middle + 16, 8, editor, nameInput, attributeData, input)
     shouldListen.listen = true
     savingMode = "modify"
     event.listen("filter_manipulation", saveButton)
@@ -303,7 +296,21 @@ local function page2()
     table.insert(pageBuffer, infoPanel)
     context.gpu.setActiveBuffer(infoPanel)
     local secondPage = {
-        {text = "text"}
+        {text = "The available filters are as follows:", color = gui.primaryColor()},
+        {text = "1: primary output (macerate-centrifuge-output)"},
+        {text = "2: purify with orewasher (orewash-recycle)"},
+        {text = "3: purify with chembath with mercury (chembath-recycle)"},
+        {text = "4: tertiary output (thermal centrifuge-macerate-output)"},
+        {text = "5: primary-smelt (smelt-macerate-package-output)"},
+        {text = "6: sift (sift-output)"},
+        {text = "7: special (output)"},
+        {text = "8: excess/no filter (output)"},
+        {}, 
+        {text = "\"Recycle\" means the item is sent back to working storage.", color = gui.primaryColor()},
+        {text = "\"Output\" means the item is sent to your ME system, etc.", color = gui.primaryColor()},
+        {},
+        {text = "It is recommended that you prioritize the recycled items"},
+        {text = "over newly incoming ones."}
     }
     gui.multiLineText(1, 1, secondPage, colors.white)
     context.gpu.setActiveBuffer(0)
@@ -343,8 +350,12 @@ local function aboutPage()
         {text = "and [number] = output chest."},
         {text = "Outputs 7 and 8 go on top of the transposers.", color = gui.primaryColor()},
         {text = "Route the cables on the bottom. Connect each chest to its"},
-        {text = "correlated processing line. Stackwise item extraction is"},
-        {text = "highly recommended."}
+        {text = "correlated processing line. Fast, stackwise item"},
+        {text = "extraction is highly recommended."},
+        {text = "Select your transposers and orientation in the config", color = gui.primaryColor()},
+        {text = "window based on the diagram. 1 is left, 2 is right.", color = gui.primaryColor()},
+        {},
+        {text = "This info can be disabled by disabling \"Setup Assistance\".", color = gui.borderColor()}
     }
     if oreAddr.help then
         gui.multiLineText(1, 1, aboutText, colors.white)
@@ -613,7 +624,7 @@ function OreProcessing.configure(x, y, gui, graphics, renderer, page)
         {displayName = "West", value = changeSetting, args = {"West", 3, renderingData}},
     }
     table.insert(currentConfigWindow, gui.smallButton(x+15, y+5, orientation, gui.selectionBox, {x+15, y+5, onActivationOrientation}))
-    gui.multiAttributeList(x + 3, y + 7, page, currentConfigWindow, {{name = "Setup Assistance:", attribute = "help", type = "boolean", defaultValue = true}}, oreAddr)
+    gui.multiAttributeList(x + 3, y + 6, page, currentConfigWindow, {{name = "Setup Assistance:", attribute = "help", type = "boolean", defaultValue = true}}, oreAddr)
     local _, ySize = graphics.context().gpu.getBufferSize(page)
     table.insert(currentConfigWindow, gui.bigButton(x+2, y+tonumber(ySize)-4, "Save Configuration", save))
     renderer.update()
