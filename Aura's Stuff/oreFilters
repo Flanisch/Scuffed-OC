@@ -1,0 +1,690 @@
+{
+    {
+        name = "Crushed Diamond Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Diamond Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Certus Quartz Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Certus Quartz Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Nether Quartz Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Nether Quartz Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Quartzite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Quartzite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Lapis Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Lapis Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Sapphire Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Sapphire Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Sodalite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Sodalite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Lazurite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Lazurite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Red Zircon Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Zed Zircon Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Aer Crystals",
+        filter = 2
+    },
+    {
+        name = "Purified Aer Crystals",
+        filter = 6
+    },
+    {
+        name = "Crushed Aqua Crystals",
+        filter = 2
+    },
+    {
+        name = "Purified Aqua Crystals",
+        filter = 6
+    },
+    {
+        name = "Crushed Ignis Crystals",
+        filter = 2
+    },
+    {
+        name = "Purified Ignis Crystals",
+        filter = 6
+    },
+    {
+        name = "Crushed Ordo Crystals",
+        filter = 2
+    },
+    {
+        name = "Purified Ordo Crystals",
+        filter = 6
+    },
+    {
+        name = "Crushed Perditio Crystals",
+        filter = 2
+    },
+    {
+        name = "Purified Perditio Crystals",
+        filter = 6
+    },
+    {
+        name = "Crushed Terra Crystals",
+        filter = 2
+    },
+    {
+        name = "Purified Terra Crystals",
+        filter = 6
+    },
+    {
+        name = "Crushed Tanzanite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Tanzanite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Tiberium Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Tiberium Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Fluorspar Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Fluorspar Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Jasper Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Jasper Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Amethyst Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Amethyst Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Dilithium Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Dilithium Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Forsterite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Forsterite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Blue Topaz Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Blue Topaz Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Coal Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Coal Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Emerald Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Emerald Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Ruby Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Ruby Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Prasiolite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Prasiolite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Vinteum Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Vinteum Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Fayalite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Fayalite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Jade Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Jade Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Amber Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Amber Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Opal Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Opal Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Topaz Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Topaz Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Green Sapphire Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Green Sapphire Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Cinnabar Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Cinnabar Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Lignite Coal Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Lignite Coal Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Almandine Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Almandine Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Aluminium Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Aluminium Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Asbestos Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Banded Iron Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Barite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Barite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Bauxite Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Beryllium Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Brown Limonite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Calcite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Calcite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Chalcopyrite Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Chromite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Cobaltite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Copper Ore",
+        filter = 5
+    },
+    {
+        name = "Crushed Desh Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Diatomite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Draconium Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Garnierite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Gold Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Gold Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Graphite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Grossular Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Gypsum Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Ilmenite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Ilmenite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Iron Ore",
+        filter = 5
+    },
+    {
+        name = "Crushed Kyanite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Lead Ore",
+        filter = 3
+    },
+    {
+        name = "Purified Lead Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Lepidolite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Lepidolite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Magnetite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Malachite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Malachite Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Meteoric Iron Ore",
+        filter = 3
+    },
+    {
+        name = "Purified Meteoric Iron Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Nickel Ore",
+        filter = 3
+    },
+    {
+        name = "Purified Nickel Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Oilsands Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Olivine Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Olivine Ore",
+        filter = 6
+    },
+    {
+        name = "Crushed Oriharukon Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Oriharukon Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Pentlandite Ore",
+        filter = 2
+    },
+    {
+        name = "Crushed Pollucite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Pollucite Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Pyrite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Pyrolusite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Pyrolusite Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Pyrope Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Realgar Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Realgar Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Redstone Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Redstone Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Rock Salt Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Rock Salt Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Saltpeter Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Silver Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Spessartine Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Spessartine Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Sphalerite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Sphalerite Ore",
+        filter = 7
+    },
+    {
+        name = "Crushed Spodumene Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Spodumene Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Sulfur Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Thorium Ore",
+        filter = 5
+    },
+    {
+        name = "Crushed Tin Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Titanium Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Tricalcium Phosphate Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Tungstate Ore",
+        filter = 3
+    },
+    {
+        name = "Purified Tungstate Dust",
+        filter = 4
+    },
+    {
+        name = "Crushed Uraninite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Uraninite Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Uranium 238 Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Uranium 238 Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Vanadium Magnetite Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Yellow Limonite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Zeolite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Zinc Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Galena Ore",
+        filter = 3
+    },
+    {
+        name = "Purified Galena Ore",
+        filter = 7
+    },
+    {
+        name = "Crushed Glauconite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Mica Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Mica Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Naquadah Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Naquadah Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Pyrochlore Ore",
+        filter = 4
+    },
+    {
+        name = "Crushed Scheelite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Scheelite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Soapstone Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Stibnite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Ardite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Cobalt Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Arsenic Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Bastnasite Ore",
+        filter = 2
+    },
+    {
+        name = "Purified Bastnasite Ore",
+        filter = 1
+    },
+    {
+        name = "Crushed Apatite Ore",
+        filter = 4
+    }
+}
